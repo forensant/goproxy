@@ -273,23 +273,28 @@ func (proxy *ProxyHttpServer) handleHttps(w http.ResponseWriter, r *http.Request
 				resp.Header.Set("Connection", "close")
 				if err := resp.Header.Write(rawClientTls); err != nil {
 					ctx.Warnf("Cannot write TLS response header from mitm'd client: %v", err)
+					ctx.Error = err
 					return
 				}
 				if _, err = io.WriteString(rawClientTls, "\r\n"); err != nil {
 					ctx.Warnf("Cannot write TLS response header end from mitm'd client: %v", err)
+					ctx.Error = err
 					return
 				}
 				chunked := newChunkedWriter(rawClientTls)
 				if _, err := io.Copy(chunked, resp.Body); err != nil {
 					ctx.Warnf("Cannot write TLS response body from mitm'd client: %v", err)
+					ctx.Error = err
 					return
 				}
 				if err := chunked.Close(); err != nil {
 					ctx.Warnf("Cannot write TLS chunked EOF from mitm'd client: %v", err)
+					ctx.Error = err
 					return
 				}
 				if _, err = io.WriteString(rawClientTls, "\r\n"); err != nil {
 					ctx.Warnf("Cannot write TLS response chunked trailer from mitm'd client: %v", err)
+					ctx.Error = err
 					return
 				}
 			}
