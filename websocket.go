@@ -151,8 +151,13 @@ func newWebsocketPacket(packet []byte) *websocketPacket {
 	}
 
 	p.packetSize = packetStart + p.payloadLength
-	p.payload = packet[packetStart:p.packetSize]
-	p.valid = (len(p.payload) == p.payloadLength)
+	if packetStart > len(packet) || p.packetSize > len(packet) {
+		p.payload = make([]byte, 0)
+		p.valid = false
+	} else {
+		p.payload = packet[packetStart:p.packetSize]
+		p.valid = (len(p.payload) == p.payloadLength)
+	}
 
 	if p.opcode == 0x00 {
 		p.opcode_str = "Continuation"
