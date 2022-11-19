@@ -122,6 +122,10 @@ type websocketPacket struct {
 
 func newWebsocketPacket(packet []byte) *websocketPacket {
 	p := &websocketPacket{}
+	if len(packet) <= 6 {
+		p.valid = false
+		return p
+	}
 	p.valid = true
 	p.flags = packet[0] & 0xF0
 	p.opcode = int(packet[0] & 0x0F)
@@ -129,12 +133,22 @@ func newWebsocketPacket(packet []byte) *websocketPacket {
 	p.payloadLength = int(packet[1] & 0x7f)
 	packetStart := 2
 	if p.payloadLength == 126 {
+		if len(packet) <= 8 {
+			p.valid = false
+			return p
+		}
+
 		p.payloadLength = int(packet[2])<<8 | int(packet[3])
 		packetStart += 2
 		if p.mask {
 			p.maskingKey = packet[4:8]
 		}
 	} else if p.payloadLength == 127 {
+		if len(packet) <= 14 {
+			p.valid = false
+			return p
+		}
+
 		p.payloadLength = int(packet[2])<<56 | int(packet[3])<<48 | int(packet[4])<<40 | int(packet[5])<<32 | int(packet[6])<<24 | int(packet[7])<<16 | int(packet[8])<<8 | int(packet[9])
 		packetStart += 8
 		if p.mask {
