@@ -1,4 +1,4 @@
-module github.com/pipeline/goproxy
+module github.com/forensant/goproxy
 
 go 1.17
 
